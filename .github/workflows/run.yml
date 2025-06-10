@@ -1,21 +1,30 @@
-name: run
+name: GLaDOS Checkin
 
 on:
-  workflow_dispatch:
-  push:
+  workflow_dispatch: # 允许手动触发
   schedule:
-    - cron: 10 16 * * *
+    - cron: '10 16 * * *' # 北京时间 00:10
 
 jobs:
-  run:
+  checkin:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v4
         with:
-          node-version: 18
-      - run: npm ci
-      - run: npm run main
+          python-version: '3.10' # 指定 Python 版本
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 运行签到脚本
         env:
-          GLADOS: ${{ secrets.GLADOS }}
-          NOTIFY: ${{ secrets.NOTIFY }}
+          GLADOS_COOKIES: ${{ secrets.GLADOS_COOKIES }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python checkin.py
